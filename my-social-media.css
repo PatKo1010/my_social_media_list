@@ -1,0 +1,69 @@
+.user-container {
+  margin: 30px;
+}
+
+.navbar-brand {
+  font-size: 35px; 
+}
+
+.carousel-item{
+    height: 50%; 
+    width: 100%; 
+    position: relative;
+    background-position: center;
+}
+.one{
+  background-image: url("https://images.unsplash.com/photo-1482267553367-e79b27d2bba1?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80");
+
+}
+
+.two {
+  background-image: url("https://images.unsplash.com/photo-1556895117-6394a6b5498c?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80");
+  background-position: center;
+}
+
+.three {
+  background-image: url("https://images.unsplash.com/photo-1583138994382-c7e197a71318?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1500&q=80");
+  background-position: center;
+
+}
+.slider {
+    max-height: 100%;  
+    max-width: 100%; 
+    width: auto;
+    height: auto;
+    position: absolute;  
+    top: 0;  
+    bottom: 0;  
+    left: 0;  
+    right: 0;  
+    margin: auto;
+    border: 1px solid black
+}
+
+
+.card {
+  border-radius: 10px;
+}
+img {
+  padding: 5px;
+  cursor: pointer;
+}
+
+#age-filter-submit {
+  width: 20%;
+  height: 25%; 
+}
+
+
+.fas{
+ font-size: 20px;
+}
+
+.fa-heart{
+  cursor: pointer;
+}
+
+.hold{
+  color: red;
+}
