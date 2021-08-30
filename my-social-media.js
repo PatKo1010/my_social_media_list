@@ -4,6 +4,8 @@ const userData = [];
 let filteredUser = [];
 let favoriteList = JSON.parse( localStorage.getItem('my-favorite-user') ) || []
 let data = userData
+let page = 1
+let AllPages
 
 const cardContainer = document.querySelector("#card-container");
 
@@ -12,7 +14,7 @@ axios.get(Index_Url).then((response) => {
   const dataResult = response.data.results;
   userData.push(...dataResult);
   renderUser(getUsersPerPage(1,data));
-  renderPagination(userData.length);
+  renderPagination(page, data);
 });
 
 function renderUser(data) {
@@ -45,10 +47,9 @@ function renderUser(data) {
   cardContainer.innerHTML = rawHTML;
 }
 
-const userPerPage = 25;
+const userPerPage = 15;
 
 function getUsersPerPage(page,data) {
-  // const data = filteredUser.length ? filteredUser : userData;
   let starter = (page - 1) * userPerPage;
   let slicedData = data.slice(starter, starter + userPerPage);
   return slicedData;
@@ -56,27 +57,76 @@ function getUsersPerPage(page,data) {
 
 const paginator = document.querySelector("#paginator");
 
-function renderPagination(amount) {
-  let pages = Math.ceil(amount / userPerPage);
-  let rawHTML = "";
-  for (let page = 1; page <= pages; page++) {
+function renderPagination(nowPage,amount) {
+  AllPages = Math.ceil(amount.length / userPerPage);
+  let rawHTML = ""
+  rawHTML += `   
+      <li id = "previous-page" class="page-item">
+        <a class="page-link" href="#" aria-label="Previous" id="previous-page">
+          &laquo;
+        </a>
+      </li>`
+  if (nowPage === 2){
     rawHTML += `
-      <li class="page-item"><a class="page-link" href="#" data-id= "${page}">${page}</a></li>`;
+    <li class="page-item"><a class="page-link" href="#" data-page='1'>1</a></li>`
+  } else if (nowPage === 3) {
+    rawHTML += `
+       <li class="page-item"><a class="page-link" href="#" data-page = '1'>1</a></li>
+    <li class="page-item"><a class="page-link" href="#" data-page = '2'>2</a></li>`
+  } else if (nowPage > 3){
+    rawHTML += `
+        <li class="page-item"><a class="page-link" href="#" data-page = "dots">...</a></li>
+        <li class="page-item"><a class="page-link" href="#" data-page = "${nowPage - 2}"> ${nowPage -2}</a></li>
+        <li class="page-item"><a class="page-link" href="#" data-page = "${nowPage - 1}">${nowPage -1 }</a></li>`
   }
+
+  rawHTML+= `
+   <li class="page-item active"><a class="page-link" href="#" data-page = "${nowPage}">${nowPage}</a></li>`
+  
+  let n = 0 
+  while (nowPage < AllPages){
+    nowPage ++
+    rawHTML += `
+     <li class="page-item"><a class="page-link" href="#" data-page = "${nowPage}">${nowPage}</a></li>`
+    n++ 
+    if (n === 2 ){
+      break
+    }
+  }
+    if (n===2 && nowPage !== AllPages){
+      rawHTML += `
+          <li class="page-item"><a class="page-link" href="#" data-page = "dots">...</a></li>`
+    }
+  
+  rawHTML += `
+   <li id = "next-page" class="page-item">
+      <a id = "next-page" class="page-link" href="#" aria-label="Next">&raquo
+      </a>
+    </li>`
+
   paginator.innerHTML = rawHTML;
 }
 
-
-
-
 //在分頁上加入事件監聽器
 paginator.addEventListener("click", (event) => {
-  let target = event.target;
-  let page = Number(event.target.dataset.id);
-  console.log(page);
-  console.log(getUsersPerPage(page,data));
-  renderUser(getUsersPerPage(Number(event.target.dataset.id),data));
+  event.preventDefault
+  let target = event.target
+  if ( (target.dataset.page  === 'dots')|| (target.tagName !== 'A'))return
+  if (target.id === 'previous-page'){
+    if (page === 1 ) {return}
+    page -= 1
+  } else if (target.matches ('#next-page')){
+    console.log(AllPages)
+    if ( page === AllPages) return
+    page += 1
+  } else {
+    page = Number (target.dataset.page)
+  }
+  renderUser(getUsersPerPage(page, data))
+  renderPagination (page,data)
 });
+
+
 
 const input = document.querySelector("#search-input");
 const searchSubmit = document.querySelector("#search-submit");
@@ -94,7 +144,7 @@ form.addEventListener("submit", (event) => {
     alert("no results found");
   } else {
     renderUser(getUsersPerPage(1,data));
-    renderPagination(filteredUser.length);
+    renderPagination(1,filteredUser);
   }
 });
 
@@ -122,26 +172,6 @@ function addFavoriteUser(id,target) {
     localStorage.setItem("my-favorite-user", JSON.stringify(favoriteList))
     target.classList.add('hold')
   }
-}
-
-
-function deleteFavoriteUser(id) {
-  let toDeleteIndex = favoriteList.findIndex(item => {
-    return item.id === Number(id)
-  })
-  let toDeleteIndexInFiltered = filteredList.findIndex(item => {
-    return item.id === Number(id)
-  })
-  if (toDeleteIndex + 1 === favoriteList.length && favoriteList.length % userPerPage === 1) {
-    page -= 1
-  }
-
-  favoriteList.splice(toDeleteIndex, 1)
-  filteredList.splice(toDeleteIndexInFiltered, 1)
-
-  localStorage.setItem('my-favorite-user', JSON.stringify(favoriteList))
-  renderUser(getUsersPerPage(page))
-  renderPagination(favoriteList.length)
 }
 
 cardContainer.addEventListener("click", (event) => {
@@ -178,19 +208,19 @@ ageFilter.addEventListener ('submit',event =>{
   data = filteredListByAge
 
   renderUser(getUsersPerPage(1,data))
-  renderPagination(data.length)
+  renderPagination(1, data)
 })
 
 
-const navButtons = document.querySelector('#navbarSupportedContent')
+// const navButtons = document.querySelector('#navbarSupportedContent')
 
-navButtons. addEventListener ('click', event => {
-  const target = event.target
-  console.log (target)
-  if (target.classList.contains('home')){
-    data = userData
-    renderUser(getUsersPerPage(1,data))
-    renderPagination(data.length)
-  } 
-})
+// navButtons. addEventListener ('click', event => {
+//   const target = event.target
+//   console.log (target)
+//   if (target.classList.contains('home')){
+//     data = userData
+//     renderUser(getUsersPerPage(1,data))
+//     renderPagination(data.length)
+//   } 
+// })
 

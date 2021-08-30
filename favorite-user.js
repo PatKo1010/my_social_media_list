@@ -2,6 +2,10 @@ const basic_Url = "https://lighthouse-user-api.herokuapp.com";
 const Index_Url = basic_Url + "/api/v1/users/";
 const favoriteList = JSON.parse(localStorage.getItem("my-favorite-user"))
 let filteredList = []
+let data = favoriteList
+const userPerPage = 15
+let page = 1 
+let AllPages
 
 const cardContainer = document.querySelector("#card-container");
 
@@ -34,37 +38,84 @@ function renderUser(data) {
 }
 
 const paginator = document.querySelector("#paginator");
-const userPerPage = 15
-let page = 1 
 
-function renderPagination(amount) {
-  let pages = Math.ceil(amount / userPerPage);
-  let rawHTML = "";
-  for (let page = 1; page <= pages; page++) {
+function renderPagination(nowPage, data) {
+  AllPages = Math.ceil(data.length / userPerPage);
+  let rawHTML = ""
+  rawHTML += `   
+      <li id = "previous-page" class="page-item">
+        <a class="page-link" href="#" aria-label="Previous" id="previous-page">
+          &laquo;
+        </a>
+      </li>`
+  if (nowPage === 2) {
     rawHTML += `
-      <li class="page-item"><a class="page-link" href="#" data-id= "${page}">${page}</a></li>`;
+    <li class="page-item"><a class="page-link" href="#" data-page='1'>1</a></li>`
+  } else if (nowPage === 3) {
+    rawHTML += `
+       <li class="page-item"><a class="page-link" href="#" data-page = '1'>1</a></li>
+    <li class="page-item"><a class="page-link" href="#" data-page = '2'>2</a></li>`
+  } else if (nowPage > 3) {
+    rawHTML += `
+        <li class="page-item"><a class="page-link" href="#" data-page = "dots">...</a></li>
+        <li class="page-item"><a class="page-link" href="#" data-page = "${nowPage - 2}"> ${nowPage - 2}</a></li>
+        <li class="page-item"><a class="page-link" href="#" data-page = "${nowPage - 1}">${nowPage - 1}</a></li>`
   }
+
+  rawHTML += `
+   <li class="page-item active"><a class="page-link" href="#" data-page = "${nowPage}">${nowPage}</a></li>`
+
+  let n = 0
+  while (nowPage < AllPages) {
+    nowPage++
+    rawHTML += `
+     <li class="page-item"><a class="page-link" href="#" data-page = "${nowPage}">${nowPage}</a></li>`
+    n++
+    if (n === 2) {
+      break
+    }
+  }
+  if (n === 2 && nowPage !== AllPages) {
+    rawHTML += `
+          <li class="page-item"><a class="page-link" href="#" data-page = "dots">...</a></li>`
+  }
+
+  rawHTML += `
+   <li id = "next-page" class="page-item">
+      <a id = "next-page" class="page-link" href="#" aria-label="Next">&raquo
+      </a>
+    </li>`
+
   paginator.innerHTML = rawHTML;
 }
 
-function getUsersPerPage(page) {
-  const data = filteredList.length ? filteredList : favoriteList;
+function getUsersPerPage(page, data) {
   let starter = (page - 1) * userPerPage;
   let slicedData = data.slice(starter, starter + userPerPage);
   return slicedData;
 }
 
-renderUser (getUsersPerPage(1))
-renderPagination (favoriteList.length)
+renderUser (getUsersPerPage(page, data))
+renderPagination (page,data)
 
 
 
 //在分頁上加入事件監聽器
 paginator.addEventListener("click", (event) => {
-  let target = event.target;
-  page = Number(event.target.dataset.id);
-  console.log(getUsersPerPage(page));
-  renderUser(getUsersPerPage(Number(event.target.dataset.id)));
+  event.preventDefault
+  let target = event.target
+  if ((target.dataset.page === 'dots') || (target.tagName !== 'A')) return
+  if (target.id === 'previous-page') {
+    if (page === 1) { return }
+    page -= 1
+  } else if (target.matches('#next-page')) {
+    if (page === AllPages) return
+    page += 1
+  } else {
+    page = Number(target.dataset.page)
+  }
+  renderUser(getUsersPerPage(page, data))
+  renderPagination(page, data)
 });
 
 const input = document.querySelector("#search-input");
@@ -78,11 +129,12 @@ form.addEventListener("submit", (event) => {
   filteredList = favoriteList.filter((user) => {
     return user.name.toLowerCase().includes(keyword);
   });
+  data = filteredList
   if (filteredList.length === 0) {
     alert("no results found");
   } else {
-    renderUser(getUsersPerPage(1));
-    renderPagination(filteredList.length);
+    renderUser(getUsersPerPage(1,data));
+    renderPagination(1,data);
   }
 });
 
@@ -116,8 +168,8 @@ function deleteFavoriteUser (id){
   filteredList.splice(toDeleteIndexInFiltered, 1)
   
   localStorage.setItem('my-favorite-user',JSON.stringify(favoriteList))
-  renderUser(getUsersPerPage(page))
-  renderPagination(favoriteList.length)
+  renderUser(getUsersPerPage(page,data))
+  renderPagination(page, data)
 }
 
 //在圖表上加入監視器
@@ -132,18 +184,16 @@ cardContainer.addEventListener("click", (event) => {
   } else if (target.classList.contains("fa-trash-alt")) {
     deleteFavoriteUser(target.dataset.id)
   }
-
 });
 
 const navButtons = document.querySelector ('#navbarSupportedContent')
 
 navButtons.addEventListener('click', event => {
   const target = event.target 
-  console.log (event.target)
-  console.lig
   if (target.classList.contains('favorite')){
-    console.log(target)
-    renderUser(favoriteList)
-    renderPagination(favoriteList.length)
+    data = favoriteList
+    page = 1 
+    renderUser(getUsersPerPage(page,data))
+    renderPagination(page,data)
   }
 })
