@@ -129,24 +129,35 @@ paginator.addEventListener("click", (event) => {
 
 
 const input = document.querySelector("#search-input");
-const searchSubmit = document.querySelector("#search-submit");
+const searchButton = document.querySelector("#search-submit");
 const form = document.querySelector("form");
 
 //在搜尋欄上加上監聽器
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const keyword = input.value.toLowerCase().replace(/\s+/g, "");
-  filteredUser = userData.filter((user) => {
-    return user.name.toLowerCase().includes(keyword);
-  });
-  data = filteredUser
-  if (filteredUser.length === 0) {
-    alert("no results found");
-  } else {
-    renderUser(getUsersPerPage(1,data));
-    renderPagination(1,filteredUser);
-  }
+  generateFreindsList (input.value)
 });
+
+input. addEventListener ('input', function timelySearch (event){
+  generateFreindsList(input.value)
+} )
+
+function generateFreindsList (text){
+  if (text.length > 0){
+    const keyword = text.toLowerCase().replace(/\s+/g, "");
+    filteredUser = userData.filter((user) => {
+      return user.name.toLowerCase().includes(keyword);
+    });
+    data = filteredUser
+  } 
+  if (filteredUser.length === 0){
+    alert("no results found")
+  }else {
+    renderUser(getUsersPerPage(1, data));
+    renderPagination(1, filteredUser);
+  }
+}
 
 const movieModalTitle = document.querySelector(".modal-title");
 const movieModalBody = document.querySelector(".modal-body");
@@ -165,13 +176,21 @@ function renderModal(user) {
 
 function addFavoriteUser(id,target) {
   const favoriteUser  = userData.find(user => user.id === Number(id))
-  if (favoriteList.some(user => user.id === Number(id))) {
-    alert('Already Exist')
-  } else {
-    favoriteList.push(favoriteUser)
-    localStorage.setItem("my-favorite-user", JSON.stringify(favoriteList))
-    target.classList.add('hold')
+  favoriteList.push(favoriteUser)
+  localStorage.setItem("my-favorite-user", JSON.stringify(favoriteList))
+  target.classList.remove('unhold')
+  target.classList.add('hold')
   }
+
+function deleteFavoriteUser (id, target){
+  const deleteIndex = favoriteList.findIndex (user => {
+    return user.id === id
+  })
+  console.log (deleteIndex)
+  favoriteList.splice(deleteIndex, 1)
+  localStorage.setItem("my-favorite-user", JSON.stringify(favoriteList))
+  target.classList.remove ('hold')
+  target.classList.add ('unhold')
 }
 
 cardContainer.addEventListener("click", (event) => {
@@ -181,9 +200,16 @@ cardContainer.addEventListener("click", (event) => {
     axios.get(Index_Url + id).then((response) => {
       const userInfo = response.data;
       renderModal(userInfo);
-    });
-  } else if (target.classList.contains("fa-heart")){
+    })
+  } else if (target.classList.contains("unhold")){
     addFavoriteUser(target.dataset.id, target)
+  } else if (target.classList.contains ("hold")) {
+    if (confirm('確定要刪除嗎') === true){
+      deleteFavoriteUser(Number(target.dataset.id), target)
+      alert('You Will Find Better Person')
+    } else {
+      alert('glad you are still friends')
+    }
   }
 });
 
@@ -212,15 +238,4 @@ ageFilter.addEventListener ('submit',event =>{
 })
 
 
-// const navButtons = document.querySelector('#navbarSupportedContent')
-
-// navButtons. addEventListener ('click', event => {
-//   const target = event.target
-//   console.log (target)
-//   if (target.classList.contains('home')){
-//     data = userData
-//     renderUser(getUsersPerPage(1,data))
-//     renderPagination(data.length)
-//   } 
-// })
 
